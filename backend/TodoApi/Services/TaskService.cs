@@ -7,30 +7,52 @@ namespace TodoApi.Services
     public class TaskService : ITaskService
     {
         private readonly ITaskRepository _taskRepository;
+        private readonly TimeZoneInfo _nepalTimeZone;
 
         public TaskService(ITaskRepository taskRepository)
         {
             _taskRepository = taskRepository;
+            _nepalTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Nepal Standard Time");
         }
 
+        /// <summary>
+        /// Determines the status of a task based on Nepal time.
+        /// </summary>
         private string GetTaskStatus(TaskItem task)
         {
             if (task.IsCompleted)
                 return "Completed";
-            if (DateTime.UtcNow > task.DueAt)
-                return "Overdue";
-            return "Pending";
+
+            // Current time in Nepal
+            DateTime nowNepal = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _nepalTimeZone);
+
+            // Task due time in Nepal
+            DateTime dueNepal = TimeZoneInfo.ConvertTimeFromUtc(task.DueAt, _nepalTimeZone);
+
+            Console.WriteLine($"🕐 Nepal Time Debug - Task {task.Id}:");
+            Console.WriteLine($"   UTC Now: {DateTime.UtcNow}");
+            Console.WriteLine($"   Nepal Now: {nowNepal}");
+            Console.WriteLine($"   UTC Due: {task.DueAt}");
+            Console.WriteLine($"   Nepal Due: {dueNepal}");
+            Console.WriteLine($"   Status: {(nowNepal > dueNepal ? "Overdue" : "Pending")}");
+
+            return nowNepal > dueNepal ? "Overdue" : "Pending";
         }
 
+        /// <summary>
+        /// Maps TaskItem to TaskDto and converts DueAt to Nepal Time for display.
+        /// </summary>
         private TaskDto MapToDto(TaskItem task)
         {
+            DateTime dueNepal = TimeZoneInfo.ConvertTimeFromUtc(task.DueAt, _nepalTimeZone);
+
             return new TaskDto
             {
                 Id = task.Id,
                 Title = task.Title,
                 Description = task.Description,
                 CreatedAt = task.CreatedAt,
-                DueAt = task.DueAt,
+                DueAt = dueNepal, // now already Nepal time
                 IsCompleted = task.IsCompleted,
                 Status = GetTaskStatus(task)
             };
@@ -56,13 +78,24 @@ namespace TodoApi.Services
             return task != null ? MapToDto(task) : null;
         }
 
+        /// <summary>
+        /// Creates a new task and ensures DueAt is stored as UTC.
+        /// </summary>
         public async Task<TaskDto> CreateTaskAsync(CreateTaskDto createTaskDto)
         {
             var task = new TaskItem
             {
                 Title = createTaskDto.Title,
                 Description = createTaskDto.Description,
-                DueAt = createTaskDto.DueAt.ToUniversalTime(),
+
+                // Store in UTC safely
+                DueAt = createTaskDto.DueAt.Kind switch
+                {
+                    DateTimeKind.Local => createTaskDto.DueAt.ToUniversalTime(),
+                    DateTimeKind.Unspecified => DateTime.SpecifyKind(createTaskDto.DueAt, DateTimeKind.Utc),
+                    _ => createTaskDto.DueAt
+                },
+
                 IsCompleted = false
             };
 
@@ -70,6 +103,9 @@ namespace TodoApi.Services
             return MapToDto(createdTask);
         }
 
+        /// <summary>
+        /// Updates an existing task and ensures DueAt is stored as UTC.
+        /// </summary>
         public async Task<TaskDto?> UpdateTaskAsync(int id, UpdateTaskDto updateTaskDto)
         {
             var existingTask = await _taskRepository.GetByIdAsync(id);
@@ -78,7 +114,14 @@ namespace TodoApi.Services
 
             existingTask.Title = updateTaskDto.Title;
             existingTask.Description = updateTaskDto.Description;
-            existingTask.DueAt = updateTaskDto.DueAt.ToUniversalTime();
+
+            existingTask.DueAt = updateTaskDto.DueAt.Kind switch
+            {
+                DateTimeKind.Local => updateTaskDto.DueAt.ToUniversalTime(),
+                DateTimeKind.Unspecified => DateTime.SpecifyKind(updateTaskDto.DueAt, DateTimeKind.Utc),
+                _ => updateTaskDto.DueAt
+            };
+
             existingTask.IsCompleted = updateTaskDto.IsCompleted;
 
             var updatedTask = await _taskRepository.UpdateAsync(existingTask);

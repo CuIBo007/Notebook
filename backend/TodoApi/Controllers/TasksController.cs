@@ -47,6 +47,10 @@ namespace TodoApi.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult<TaskDto>> UpdateTask(int id, UpdateTaskDto updateTaskDto)
         {
+            Console.WriteLine($"🔧 Backend: Received task {id} update");
+            Console.WriteLine($"📤 DueAt received: {updateTaskDto.DueAt} (Kind: {updateTaskDto.DueAt.Kind})");
+            Console.WriteLine($"📤 DueAt as UTC: {updateTaskDto.DueAt.ToUniversalTime()}");
+            
             if (updateTaskDto.DueAt <= DateTime.UtcNow && !updateTaskDto.IsCompleted)
             {
                 return BadRequest(new { message = "Due date must be in the future for pending tasks" });
@@ -56,6 +60,7 @@ namespace TodoApi.Controllers
             if (updatedTask == null)
                 return NotFound(new { message = $"Task with id {id} not found" });
 
+            Console.WriteLine($"✅ DueAt after update: {updatedTask.DueAt} (Kind: {updatedTask.DueAt.Kind})");
             return Ok(updatedTask);
         }
 

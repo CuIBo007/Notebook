@@ -11,6 +11,24 @@ const TaskCard = ({ task, onUpdate, onDelete }) => {
     unit: 'days'
   })
 
+  // Convert UTC or string timestamps to Nepal Time display
+  const formatNepalTime = (date) => {
+    if (!(date instanceof Date)) date = new Date(date) // Ensure Date object
+    
+    // Nepal Time offset +5:45
+    const nepalOffsetMinutes = 5 * 60 + 45
+    const nepalTime = new Date(date.getTime() + nepalOffsetMinutes * 60000)
+
+    return nepalTime.toLocaleString("en-NP", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false
+    })
+  }
+
   const getStatusColor = (status) => {
     switch(status) {
       case 'Completed': return '#10b981'
@@ -56,19 +74,22 @@ const TaskCard = ({ task, onUpdate, onDelete }) => {
 
   const calculateDueDate = () => {
     const now = new Date()
-    const { value, unit } = duration
-    
-    switch(unit) {
+    const baseDate = new Date(editedTask.dueAt)
+
+    // 🔥 pick whichever is later
+    const effectiveBase = baseDate > now ? baseDate : now
+
+    switch(duration.unit) {
       case 'minutes':
-        return new Date(now.getTime() + value * 60000)
+        return new Date(effectiveBase.getTime() + duration.value * 60000)
       case 'hours':
-        return new Date(now.getTime() + value * 3600000)
+        return new Date(effectiveBase.getTime() + duration.value * 3600000)
       case 'days':
-        return new Date(now.getTime() + value * 86400000)
+        return new Date(effectiveBase.getTime() + duration.value * 86400000)
       case 'weeks':
-        return new Date(now.getTime() + value * 604800000)
+        return new Date(effectiveBase.getTime() + duration.value * 604800000)
       default:
-        return now
+        return effectiveBase
     }
   }
 
@@ -78,6 +99,8 @@ const TaskCard = ({ task, onUpdate, onDelete }) => {
       ...editedTask,
       dueAt: newDueDate.toISOString()
     }
+    
+    console.log("📤 Sending dueAt:", newDueDate.toISOString())
     
     await onUpdate(updatedTaskData)
     setIsEditing(false)
@@ -165,10 +188,10 @@ const TaskCard = ({ task, onUpdate, onDelete }) => {
       )}
       
       <div className="task-footer">
-        {!task.isCompleted && (
-        <div className="task-due-date">
+        {!task.isCompleted && task.status !== 'Overdue' && (
+        <div key={task.dueAt} className="task-due-date">
           <span className="due-icon">📅</span>
-          <span>Due: {formatDistanceToNow(new Date(task.dueAt), { addSuffix: true })}</span>
+          <span>Due: {formatNepalTime(task.dueAt)}</span>
         </div>
       )}
         <div 

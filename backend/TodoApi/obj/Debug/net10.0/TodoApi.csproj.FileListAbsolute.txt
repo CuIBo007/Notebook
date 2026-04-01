@@ -147,6 +147,7 @@ C:\Users\Admin\OneDrive\Desktop\task\TodoApp\backend\TodoApi\obj\Debug\net10.0\T
 C:\Users\Admin\OneDrive\Desktop\task\TodoApp\backend\TodoApi\obj\Debug\net10.0\TodoApi.csproj.CoreCompileInputs.cache
 C:\Users\Admin\OneDrive\Desktop\task\TodoApp\backend\TodoApi\obj\Debug\net10.0\TodoApi.MvcApplicationPartsAssemblyInfo.cs
 C:\Users\Admin\OneDrive\Desktop\task\TodoApp\backend\TodoApi\obj\Debug\net10.0\TodoApi.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\Admin\OneDrive\Desktop\task\TodoApp\backend\TodoApi\obj\Debug\net10.0\TodoApi.sourcelink.json
 C:\Users\Admin\OneDrive\Desktop\task\TodoApp\backend\TodoApi\obj\Debug\net10.0\rjimswa.dswa.cache.json
 C:\Users\Admin\OneDrive\Desktop\task\TodoApp\backend\TodoApi\obj\Debug\net10.0\rjsmrazor.dswa.cache.json
 C:\Users\Admin\OneDrive\Desktop\task\TodoApp\backend\TodoApi\obj\Debug\net10.0\rjsmcshtml.dswa.cache.json

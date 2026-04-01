@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import TaskList from '../components/TaskList'
-import { taskService } from '../services/taskService'
-import toast from 'react-hot-toast'
+import { useTaskStore } from '../store/taskStore'
 import './Pages.css'
 
 const Completed = () => {
-  const [tasks, setTasks] = useState([])
-  const [loading, setLoading] = useState(true)
+  const { tasks, loading, fetchTasks, updateTask, deleteTask } = useTaskStore()
   const [currentPage, setCurrentPage] = useState(1)
   const tasksPerPage = 10
 
@@ -14,53 +12,14 @@ const Completed = () => {
     fetchTasks()
   }, [])
 
-  const fetchTasks = async () => {
-    try {
-      setLoading(true)
-      const data = await taskService.getTasks('completed')
-      setTasks(data)
-    } catch (error) {
-      toast.error('Failed to fetch completed tasks')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleUpdateTask = async (updatedTask) => {
-    try {
-      const task = await taskService.updateTask(updatedTask.id, updatedTask)
-      if (!task.isCompleted) {
-        setTasks(tasks.filter(t => t.id !== task.id))
-      } else {
-        setTasks(tasks.map(t => t.id === task.id ? task : t))
-      }
-    } catch (error) {
-      toast.error('Failed to update task')
-    }
-  }
-
-  const handleDeleteTask = async (taskId) => {
-    try {
-      await taskService.deleteTask(taskId)
-      const updatedTasks = tasks.filter(t => t.id !== taskId)
-      setTasks(updatedTasks)
-      
-      // If last item on page deleted, go to previous page
-      if (currentPage > 1 && updatedTasks.length <= (currentPage - 1) * tasksPerPage) {
-        setCurrentPage(prev => prev - 1)
-      }
-      
-      toast.success('Task deleted successfully')
-    } catch (error) {
-      toast.error('Failed to delete task')
-    }
-  }
+  // Filter for completed tasks
+  const completedTasks = tasks.filter(t => t.isCompleted)
 
   // Pagination
   const indexOfLastTask = currentPage * tasksPerPage
   const indexOfFirstTask = indexOfLastTask - tasksPerPage
-  const currentTasks = tasks.slice(indexOfFirstTask, indexOfLastTask)
-  const totalPages = Math.ceil(tasks.length / tasksPerPage)
+  const currentTasks = completedTasks.slice(indexOfFirstTask, indexOfLastTask)
+  const totalPages = Math.ceil(completedTasks.length / tasksPerPage)
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber)
 
@@ -69,8 +28,8 @@ const Completed = () => {
       <h1 className="page-title">Completed Tasks</h1>
       <TaskList 
         tasks={currentTasks}
-        onUpdate={handleUpdateTask}
-        onDelete={handleDeleteTask}
+        onUpdate={updateTask}
+        onDelete={deleteTask}
         loading={loading}
       />
       
