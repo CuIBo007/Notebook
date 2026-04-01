@@ -1,0 +1,30 @@
+.task-list {
+  margin-top: 1rem;
+}
+
+.loading-container {
+  text-align: center;
+  padding: 3rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  background: white;
+  border-radius: 12px;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.empty-text {
+  font-size: 1.25rem;
+  color: #2c1810;
+  margin-bottom: 0.5rem;
+}
+
+.empty-subtext {
+  color: #666;
+}
