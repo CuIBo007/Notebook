@@ -6,6 +6,10 @@ import './TaskCard.css'
 const TaskCard = ({ task, onUpdate, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false)
   const [editedTask, setEditedTask] = useState({ ...task })
+  const [duration, setDuration] = useState({
+    value: 1,
+    unit: 'days'
+  })
 
   const getStatusColor = (status) => {
     switch(status) {
@@ -26,10 +30,56 @@ const TaskCard = ({ task, onUpdate, onDelete }) => {
 
   const handleEdit = () => {
     setIsEditing(true)
+    // Initialize duration based on current due date
+    const now = new Date()
+    const dueDate = new Date(task.dueAt)
+    const diffMs = dueDate.getTime() - now.getTime()
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+    
+    if (diffDays > 0) {
+      if (diffDays >= 7) {
+        setDuration({ value: Math.ceil(diffDays / 7), unit: 'weeks' })
+      } else if (diffDays >= 1) {
+        setDuration({ value: diffDays, unit: 'days' })
+      } else {
+        const diffHours = Math.ceil(diffMs / (1000 * 60 * 60))
+        if (diffHours >= 1) {
+          setDuration({ value: diffHours, unit: 'hours' })
+        } else {
+          setDuration({ value: Math.ceil(diffMs / (1000 * 60)), unit: 'minutes' })
+        }
+      }
+    } else {
+      setDuration({ value: 1, unit: 'days' })
+    }
+  }
+
+  const calculateDueDate = () => {
+    const now = new Date()
+    const { value, unit } = duration
+    
+    switch(unit) {
+      case 'minutes':
+        return new Date(now.getTime() + value * 60000)
+      case 'hours':
+        return new Date(now.getTime() + value * 3600000)
+      case 'days':
+        return new Date(now.getTime() + value * 86400000)
+      case 'weeks':
+        return new Date(now.getTime() + value * 604800000)
+      default:
+        return now
+    }
   }
 
   const handleSave = async () => {
-    await onUpdate(editedTask)
+    const newDueDate = calculateDueDate()
+    const updatedTaskData = {
+      ...editedTask,
+      dueAt: newDueDate.toISOString()
+    }
+    
+    await onUpdate(updatedTaskData)
     setIsEditing(false)
     toast.success('Task updated successfully')
   }
@@ -61,12 +111,25 @@ const TaskCard = ({ task, onUpdate, onDelete }) => {
           placeholder="Description"
           rows="2"
         />
-        <input
-          type="datetime-local"
-          value={format(new Date(editedTask.dueAt), "yyyy-MM-dd'T'HH:mm")}
-          onChange={(e) => setEditedTask({ ...editedTask, dueAt: new Date(e.target.value).toISOString() })}
-          className="edit-due-date"
-        />
+        <div className="edit-duration-row">
+          <input
+            type="number"
+            value={duration.value}
+            onChange={(e) => setDuration({ ...duration, value: parseInt(e.target.value) || 1 })}
+            className="edit-duration-value"
+            min="1"
+          />
+          <select
+            value={duration.unit}
+            onChange={(e) => setDuration({ ...duration, unit: e.target.value })}
+            className="edit-duration-unit"
+          >
+            <option value="minutes">Minutes</option>
+            <option value="hours">Hours</option>
+            <option value="days">Days</option>
+            <option value="weeks">Weeks</option>
+          </select>
+        </div>
         <div className="edit-actions">
           <button onClick={handleSave} className="save-btn">Save</button>
           <button onClick={handleCancel} className="cancel-btn">Cancel</button>
@@ -102,10 +165,12 @@ const TaskCard = ({ task, onUpdate, onDelete }) => {
       )}
       
       <div className="task-footer">
+        {!task.isCompleted && (
         <div className="task-due-date">
           <span className="due-icon">📅</span>
           <span>Due: {formatDistanceToNow(new Date(task.dueAt), { addSuffix: true })}</span>
         </div>
+      )}
         <div 
           className="task-status" 
           style={{ backgroundColor: getStatusColor(task.status) }}
