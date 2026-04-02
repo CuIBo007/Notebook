@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TodoApi.Data;
 using TodoApi.Models;
+using System.Collections.Generic;
 
 namespace TodoApi.Repositories
 {
@@ -67,7 +68,7 @@ namespace TodoApi.Repositories
             var existingTask = await _context.Tasks.FindAsync(task.Id);
             
             if (existingTask == null)
-                throw new Exception($"Task with id {task.Id} not found");
+                throw new KeyNotFoundException($"Task with id {task.Id} not found.");
 
             // Update fields
             existingTask.Title = task.Title;

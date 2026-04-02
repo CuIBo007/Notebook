@@ -1,6 +1,7 @@
 using TodoApi.DTOs;
 using TodoApi.Models;
 using TodoApi.Repositories;
+using System.Globalization;
 
 namespace TodoApi.Services
 {
@@ -13,6 +14,19 @@ namespace TodoApi.Services
         {
             _taskRepository = taskRepository;
             _nepalTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Nepal Standard Time");
+        }
+
+        /// <summary>
+        /// Ensures DateTime is properly handled as UTC
+        /// </summary>
+        private static DateTime EnsureUtc(DateTime dateTime)
+        {
+            return dateTime.Kind switch
+            {
+                DateTimeKind.Utc => dateTime,
+                DateTimeKind.Local => dateTime.ToUniversalTime(),
+                DateTimeKind.Unspecified => DateTime.SpecifyKind(dateTime, DateTimeKind.Utc)
+            };
         }
 
         /// <summary>
@@ -88,13 +102,8 @@ namespace TodoApi.Services
                 Title = createTaskDto.Title,
                 Description = createTaskDto.Description,
 
-                // Store in UTC safely
-                DueAt = createTaskDto.DueAt.Kind switch
-                {
-                    DateTimeKind.Local => createTaskDto.DueAt.ToUniversalTime(),
-                    DateTimeKind.Unspecified => DateTime.SpecifyKind(createTaskDto.DueAt, DateTimeKind.Utc),
-                    _ => createTaskDto.DueAt
-                },
+                // Store in UTC safely using EnsureUtc
+                DueAt = EnsureUtc(createTaskDto.DueAt),
 
                 IsCompleted = false
             };
@@ -112,10 +121,10 @@ namespace TodoApi.Services
             if (existingTask == null)
                 return null;
 
-            // Update fields with UTC Kind enforcement
+            // Update fields with proper UTC handling
             existingTask.Title = updateTaskDto.Title;
             existingTask.Description = updateTaskDto.Description;
-            existingTask.DueAt = DateTime.SpecifyKind(updateTaskDto.DueAt, DateTimeKind.Utc);
+            existingTask.DueAt = EnsureUtc(updateTaskDto.DueAt);
             existingTask.IsCompleted = updateTaskDto.IsCompleted;
 
             var updatedTask = await _taskRepository.UpdateAsync(existingTask);

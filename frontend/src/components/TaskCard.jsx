@@ -13,10 +13,14 @@ const TaskCard = ({ task, onUpdate, onDelete }) => {
 
   // Convert UTC to Nepal Time safely (removes ambiguity)
   const formatNepalTime = (date) => {
-    if (!(date instanceof Date)) date = new Date(date) // Ensure Date object
+    if (!date) return "No due date";
+
+    const parsed = new Date(date);
     
+    if (isNaN(parsed)) return "Invalid date";
+
     // ✅ SAFE: Explicit timezone conversion removes ambiguity
-    return date.toLocaleString("en-US", {
+    return parsed.toLocaleString("en-US", {
       timeZone: "Asia/Kathmandu",
       year: "numeric",
       month: "short",
