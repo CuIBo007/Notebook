@@ -14,15 +14,13 @@ const Home = () => {
     fetchTasks()
   }, [])
 
-  // Convert UTC or string timestamps to Nepal Time display (same as TaskCard)
+  // Convert UTC to Nepal Time safely (removes ambiguity)
   const formatNepalTime = (date) => {
     if (!(date instanceof Date)) date = new Date(date) // Ensure Date object
     
-    // Nepal Time offset +5:45
-    const nepalOffsetMinutes = 5 * 60 + 45
-    const nepalTime = new Date(date.getTime() + nepalOffsetMinutes * 60000)
-
-    return nepalTime.toLocaleString("en-NP", {
+    // ✅ SAFE: Explicit timezone conversion removes ambiguity
+    return date.toLocaleString("en-US", {
+      timeZone: "Asia/Kathmandu",
       year: "numeric",
       month: "short", 
       day: "numeric",

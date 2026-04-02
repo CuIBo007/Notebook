@@ -3,11 +3,19 @@ import { taskService } from '../services/taskService'
 import toast from 'react-hot-toast'
 
 // Helper: Convert API timestamps to Date objects
-const processTaskFromAPI = (task) => ({
-  ...task,
-  createdAt: new Date(task.createdAt),
-  dueAt: new Date(task.dueAt),
-})
+const processTaskFromAPI = (task) => {
+  console.log("🔍 RAW API Task:", task)
+  console.log("🔍 RAW dueAt type:", typeof task.dueAt, "value:", task.dueAt)
+  
+  const processedTask = {
+    ...task,
+    createdAt: new Date(task.createdAt),
+    dueAt: new Date(task.dueAt),
+  }
+  
+  console.log("✅ Processed dueAt:", processedTask.dueAt, "is Date:", processedTask.dueAt instanceof Date)
+  return processedTask
+}
 
 export const useTaskStore = create((set, get) => ({
   tasks: [],

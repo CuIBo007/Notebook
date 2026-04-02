@@ -112,16 +112,10 @@ namespace TodoApi.Services
             if (existingTask == null)
                 return null;
 
+            // Update fields with UTC Kind enforcement
             existingTask.Title = updateTaskDto.Title;
             existingTask.Description = updateTaskDto.Description;
-
-            existingTask.DueAt = updateTaskDto.DueAt.Kind switch
-            {
-                DateTimeKind.Local => updateTaskDto.DueAt.ToUniversalTime(),
-                DateTimeKind.Unspecified => DateTime.SpecifyKind(updateTaskDto.DueAt, DateTimeKind.Utc),
-                _ => updateTaskDto.DueAt
-            };
-
+            existingTask.DueAt = DateTime.SpecifyKind(updateTaskDto.DueAt, DateTimeKind.Utc);
             existingTask.IsCompleted = updateTaskDto.IsCompleted;
 
             var updatedTask = await _taskRepository.UpdateAsync(existingTask);
