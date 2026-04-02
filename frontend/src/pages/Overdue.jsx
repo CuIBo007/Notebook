@@ -12,10 +12,8 @@ const Overdue = () => {
     fetchTasks()
   }, [])
 
-  // Filter for overdue tasks
   const overdueTasks = tasks.filter(t => t.status === 'Overdue')
 
-  // Pagination
   const indexOfLastTask = currentPage * tasksPerPage
   const indexOfFirstTask = indexOfLastTask - tasksPerPage
   const currentTasks = overdueTasks.slice(indexOfFirstTask, indexOfLastTask)

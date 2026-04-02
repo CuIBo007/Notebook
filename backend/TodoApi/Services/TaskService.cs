@@ -16,9 +16,6 @@ namespace TodoApi.Services
             _nepalTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Nepal Standard Time");
         }
 
-        /// <summary>
-        /// Ensures DateTime is properly handled as UTC
-        /// </summary>
         private static DateTime EnsureUtc(DateTime dateTime)
         {
             return dateTime.Kind switch
@@ -29,9 +26,6 @@ namespace TodoApi.Services
             };
         }
 
-        /// <summary>
-        /// Determines the status of a task based on Nepal time.
-        /// </summary>
         private string GetTaskStatus(TaskItem task)
         {
             if (task.IsCompleted)
@@ -43,7 +37,7 @@ namespace TodoApi.Services
             // Task due time in Nepal
             DateTime dueNepal = TimeZoneInfo.ConvertTimeFromUtc(task.DueAt, _nepalTimeZone);
 
-            Console.WriteLine($"🕐 Nepal Time Debug - Task {task.Id}:");
+            Console.WriteLine($" Nepal Time Debug - Task {task.Id}:");
             Console.WriteLine($"   UTC Now: {DateTime.UtcNow}");
             Console.WriteLine($"   Nepal Now: {nowNepal}");
             Console.WriteLine($"   UTC Due: {task.DueAt}");
@@ -53,9 +47,6 @@ namespace TodoApi.Services
             return nowNepal > dueNepal ? "Overdue" : "Pending";
         }
 
-        /// <summary>
-        /// Maps TaskItem to TaskDto and converts DueAt to Nepal Time for display.
-        /// </summary>
         private TaskDto MapToDto(TaskItem task)
         {
             DateTime dueNepal = TimeZoneInfo.ConvertTimeFromUtc(task.DueAt, _nepalTimeZone);
@@ -66,10 +57,10 @@ namespace TodoApi.Services
                 Title = task.Title,
                 Description = task.Description,
                 CreatedAt = task.CreatedAt,
-                DueAt = dueNepal, // now already Nepal time
+                DueAt = dueNepal,
                 IsCompleted = task.IsCompleted,
                 Status = GetTaskStatus(task)
-            };
+            }; 
         }
 
         public async Task<IEnumerable<TaskDto>> GetAllTasksAsync(string? status = null)
@@ -92,19 +83,13 @@ namespace TodoApi.Services
             return task != null ? MapToDto(task) : null;
         }
 
-        /// <summary>
-        /// Creates a new task and ensures DueAt is stored as UTC.
-        /// </summary>
         public async Task<TaskDto> CreateTaskAsync(CreateTaskDto createTaskDto)
         {
             var task = new TaskItem
             {
                 Title = createTaskDto.Title,
                 Description = createTaskDto.Description,
-
-                // Store in UTC safely using EnsureUtc
                 DueAt = EnsureUtc(createTaskDto.DueAt),
-
                 IsCompleted = false
             };
 
@@ -112,16 +97,12 @@ namespace TodoApi.Services
             return MapToDto(createdTask);
         }
 
-        /// <summary>
-        /// Updates an existing task and ensures DueAt is stored as UTC.
-        /// </summary>
         public async Task<TaskDto?> UpdateTaskAsync(int id, UpdateTaskDto updateTaskDto)
         {
             var existingTask = await _taskRepository.GetByIdAsync(id);
             if (existingTask == null)
                 return null;
 
-            // Update fields with proper UTC handling
             existingTask.Title = updateTaskDto.Title;
             existingTask.Description = updateTaskDto.Description;
             existingTask.DueAt = EnsureUtc(updateTaskDto.DueAt);

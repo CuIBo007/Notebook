@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { formatDistanceToNow, format } from 'date-fns'
-import toast from 'react-hot-toast'
 import './TaskCard.css'
 
 const TaskCard = ({ task, onUpdate, onDelete }) => {
@@ -11,7 +10,7 @@ const TaskCard = ({ task, onUpdate, onDelete }) => {
     unit: 'days'
   })
 
-  // Convert UTC to Nepal Time safely (removes ambiguity)
+  // Convert UTC to Nepal Time safely 
   const formatNepalTime = (date) => {
     if (!date) return "No due date";
 
@@ -19,7 +18,6 @@ const TaskCard = ({ task, onUpdate, onDelete }) => {
     
     if (isNaN(parsed)) return "Invalid date";
 
-    // ✅ SAFE: Explicit timezone conversion removes ambiguity
     return parsed.toLocaleString("en-US", {
       timeZone: "Asia/Kathmandu",
       year: "numeric",
@@ -45,7 +43,6 @@ const TaskCard = ({ task, onUpdate, onDelete }) => {
       isCompleted: !task.isCompleted
     }
     await onUpdate(updatedTask)
-    toast.success(`Task marked as ${!task.isCompleted ? 'completed' : 'pending'}`)
   }
 
   const handleEdit = () => {
@@ -78,7 +75,6 @@ const TaskCard = ({ task, onUpdate, onDelete }) => {
     const now = new Date()
     const baseDate = new Date(editedTask.dueAt)
 
-    // 🔥 pick whichever is later
     const effectiveBase = baseDate > now ? baseDate : now
 
     switch(duration.unit) {
@@ -106,7 +102,6 @@ const TaskCard = ({ task, onUpdate, onDelete }) => {
     
     await onUpdate(updatedTaskData)
     setIsEditing(false)
-    toast.success('Task updated successfully')
   }
 
   const handleCancel = () => {
@@ -116,7 +111,6 @@ const TaskCard = ({ task, onUpdate, onDelete }) => {
 
   const handleDelete = async () => {
       await onDelete(task.id)
-      toast.success('Task deleted successfully')
   }
 
   if (isEditing) {

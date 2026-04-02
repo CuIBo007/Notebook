@@ -14,7 +14,7 @@ const Home = () => {
     fetchTasks()
   }, [])
 
-  // Convert UTC to Nepal Time safely (removes ambiguity)
+  // Convert UTC to Nepal Time 
   const formatNepalTime = (date) => {
     if (!date) return "No due date";
 
@@ -22,7 +22,6 @@ const Home = () => {
     
     if (isNaN(parsed)) return "Invalid date";
 
-    // ✅ SAFE: Explicit timezone conversion removes ambiguity
     return parsed.toLocaleString("en-US", {
       timeZone: "Asia/Kathmandu",
       year: "numeric",
@@ -30,30 +29,25 @@ const Home = () => {
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      hour12: false // 24-hour format
+      hour12: false
     })
   }
 
-  // Filter for pending tasks
   const pendingTasks = tasks.filter(t => !t.isCompleted && t.status !== 'Overdue')
   
-  // Debug logging
   console.log("🏠 Home Debug:")
   console.log("  - All tasks:", tasks)
   console.log("  - Pending tasks:", pendingTasks)
   console.log("  - Loading:", loading)
   
-  // Verify Date objects
   tasks.forEach(task => {
     console.log(`  🔍 Task ${task.id} dueAt type: ${typeof task.dueAt}, is Date: ${task.dueAt instanceof Date}`)
   })
   
-  // Debug each pending task's due date with formatting
   pendingTasks.forEach(task => {
     console.log(`  📅 Task ${task.id}: ${task.title} - Due: ${formatNepalTime(task.dueAt)} - Status: ${task.status}`)
   })
 
-  // Pagination
   const indexOfLastTask = currentPage * tasksPerPage
   const indexOfFirstTask = indexOfLastTask - tasksPerPage
   const currentTasks = pendingTasks.slice(indexOfFirstTask, indexOfLastTask)
@@ -61,7 +55,6 @@ const Home = () => {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber)
 
-  // Loading guard
   if (loading) {
     return (
       <div className="page-container">

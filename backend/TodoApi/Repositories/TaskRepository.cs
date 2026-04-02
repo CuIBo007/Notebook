@@ -16,12 +16,12 @@ namespace TodoApi.Repositories
 
         public async Task<IEnumerable<TaskItem>> GetAllAsync()
         {
-            // ✅ Use AsNoTracking to prevent tracking conflicts and improve performance
+            //  Using AsNoTracking to prevent tracking conflicts and improve performance
             var tasks = await _context.Tasks
                 .AsNoTracking()
                 .ToListAsync();
             
-            // 🔥 FINAL FIX: Force UTC Kind after reading from database
+            //  Forcing UTC Kind after reading from database
             return tasks.Select(t => new TaskItem
             {
                 Id = t.Id,
@@ -35,14 +35,12 @@ namespace TodoApi.Repositories
 
         public async Task<TaskItem?> GetByIdAsync(int id)
         {
-            // ✅ Use AsNoTracking to prevent tracking conflicts
             var task = await _context.Tasks
                 .AsNoTracking()
                 .FirstOrDefaultAsync(t => t.Id == id);
                 
             if (task == null) return null;
             
-            // 🔥 FINAL FIX: Force UTC Kind after reading from database
             return new TaskItem
             {
                 Id = task.Id,
@@ -64,13 +62,11 @@ namespace TodoApi.Repositories
 
         public async Task<TaskItem> UpdateAsync(TaskItem task)
         {
-            // ✅ REAL FIX: Fetch then update to avoid tracking conflicts
             var existingTask = await _context.Tasks.FindAsync(task.Id);
             
             if (existingTask == null)
                 throw new KeyNotFoundException($"Task with id {task.Id} not found.");
 
-            // Update fields
             existingTask.Title = task.Title;
             existingTask.Description = task.Description;
             existingTask.DueAt = task.DueAt;
